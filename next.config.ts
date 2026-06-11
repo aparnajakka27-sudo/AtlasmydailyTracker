@@ -8,11 +8,9 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true
   },
-  // Set turbopack root layout config
-  compiler: {
-    // Note: Next.js v16 NextConfig compiler option
+  outputFileTracingIncludes: {
+    '/api/**/*': ['./prisma/dev.db'],
   },
-  // Alternative option is custom webpack config or direct runtime variables
 };
 
 export default nextConfig;

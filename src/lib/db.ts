@@ -6,8 +6,15 @@ import path from 'path';
 // We copy the database to '/tmp' (which is read-write on Vercel) and point DATABASE_URL there.
 if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
   const dbName = 'dev.db';
-  const srcPath = path.join(process.cwd(), 'prisma', dbName);
   const destPath = path.join('/tmp', dbName);
+
+  // Search across several possible location directories inside Vercel's runtime environment
+  const possibleSrcPaths = [
+    path.join(/*turbopackIgnore: true*/ process.cwd(), 'prisma', dbName),
+    path.join(/*turbopackIgnore: true*/ process.cwd(), 'lifetracker', 'prisma', dbName),
+    path.join(/*turbopackIgnore: true*/ process.cwd(), '.next', 'server', 'prisma', dbName),
+    path.resolve(path.join(/*turbopackIgnore: true*/ process.cwd(), '..', 'prisma', dbName)),
+  ];
 
   try {
     const destDir = path.dirname(destPath);
@@ -17,12 +24,18 @@ if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
     
     // Copy if it doesn't exist yet in /tmp
     if (!fs.existsSync(destPath)) {
-      if (fs.existsSync(srcPath)) {
-        fs.copyFileSync(srcPath, destPath);
-        fs.chmodSync(destPath, 0o666);
-        console.log('Database successfully copied to /tmp');
-      } else {
-        console.warn('Source database not found at:', srcPath);
+      let copied = false;
+      for (const srcPath of possibleSrcPaths) {
+        if (fs.existsSync(srcPath)) {
+          fs.copyFileSync(srcPath, destPath);
+          fs.chmodSync(destPath, 0o666);
+          console.log(`Database successfully copied to /tmp from ${srcPath}`);
+          copied = true;
+          break;
+        }
+      }
+      if (!copied) {
+        console.warn('Source database not found in any fallback path:', possibleSrcPaths);
       }
     }
     
