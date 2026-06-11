@@ -1,36 +1,185 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Atlas 🚀
 
-## Getting Started
+**Atlas** is a modern productivity operating system designed to help you organize your life, track your daily activities, build habits, monitor progress, and achieve goals more effectively.
 
-First, run the development server:
+## 🌟 Features
+
+### 📅 Daily Planner
+
+* Create and manage daily schedules
+* Time-based task planning
+* Priority management
+* Calendar and timeline views
+
+### ✅ Smart Task Management
+
+* Create, edit, and delete tasks
+* Task categorization
+* Priority levels
+* Progress tracking
+* Completion statistics
+
+### ⏰ Intelligent Reminders
+
+* Real-time notifications
+* Custom reminder schedules
+* Overdue task alerts
+* Daily planning prompts
+
+### 📈 Productivity Analytics
+
+* Daily productivity score
+* Weekly and monthly reports
+* Task completion rate analysis
+* Performance insights
+* Progress visualization
+
+### 🎯 Habit Tracker
+
+* Track daily habits
+* Streak monitoring
+* Consistency reports
+* Habit completion heatmaps
+* Long-term growth tracking
+
+### 📝 Notes & Journal
+
+* Daily journaling
+* Quick notes
+* Rich text support
+* Auto-save functionality
+* Searchable note history
+
+### 🤖 AI Productivity Coach
+
+* End-of-day reviews
+* Personalized feedback
+* Productivity ratings
+* Performance recommendations
+* Growth predictions
+
+### 🏆 Gamification
+
+* XP system
+* Achievement badges
+* Productivity levels
+* Daily challenges
+* Streak rewards
+
+---
+
+## 🛠 Tech Stack
+
+### Frontend
+
+* Next.js
+* TypeScript
+* Tailwind CSS
+* ShadCN UI
+* Framer Motion
+
+### Backend
+
+* Node.js
+* Express.js
+
+### Database
+
+* PostgreSQL
+* Prisma ORM
+
+### Authentication
+
+* NextAuth
+
+### Charts & Analytics
+
+* Recharts
+
+### Notifications
+
+* Browser Notification API
+
+---
+
+## 🎯 Mission
+
+Atlas helps users transform daily actions into measurable progress by combining task management, habit tracking, journaling, reminders, and AI-powered productivity insights into a single platform.
+
+---
+
+## 🚀 Getting Started
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/atlas.git
+cd atlas
+```
+
+### Install Dependencies
+
+```bash
+npm install
+```
+
+### Configure Environment Variables
+
+Create a `.env` file:
+
+```env
+DATABASE_URL=
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+```
+
+### Run Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📊 Core Modules
 
-To learn more about Next.js, take a look at the following resources:
+* Dashboard
+* Daily Planner
+* Task Manager
+* Habit Tracker
+* Notes & Journal
+* AI Review System
+* Analytics Engine
+* User Authentication
+* Notification Center
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔮 Future Enhancements
 
-## Deploy on Vercel
+* AI Schedule Optimization
+* Voice Assistant Integration
+* Mobile Applications
+* Team Collaboration
+* Goal Roadmaps
+* Smart Focus Sessions
+* Calendar Integrations
+* Cross-device Sync
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📄 License
+
+MIT License
+
+---
+
+Built with ❤️ to help people stay focused, productive, and consistent every day.
