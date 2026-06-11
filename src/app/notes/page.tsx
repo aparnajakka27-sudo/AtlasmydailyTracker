@@ -193,7 +193,9 @@ export default function NotesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* SIDEBAR FILE LISTS */}
-        <div className="glass-panel border border-border/40 rounded-3xl p-5 space-y-4">
+        <div className={`glass-panel border border-border/40 rounded-3xl p-5 space-y-4 ${
+          selectedNote ? "hidden lg:block" : "block"
+        }`}>
           <div className="flex items-center justify-between gap-4">
             <span className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Documents</span>
             <button
@@ -255,10 +257,20 @@ export default function NotesPage() {
         </div>
 
         {/* EDITOR AREA */}
-        <div className="lg:col-span-2 glass-panel border border-border/40 rounded-3xl p-6 min-h-[500px]">
+        <div className={`lg:col-span-2 glass-panel border border-border/40 rounded-3xl p-6 min-h-[500px] ${
+          !selectedNote ? "hidden lg:block" : "block"
+        }`}>
           {selectedNote ? (
             <div className="h-full flex flex-col space-y-4">
               
+              {/* Back to documents on mobile */}
+              <button 
+                onClick={() => setSelectedNote(null)}
+                className="lg:hidden w-fit px-3 py-1.5 rounded-lg bg-secondary/60 text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 mb-2"
+              >
+                &larr; Back to Documents
+              </button>
+
               {/* Type toggle */}
               <div className="flex items-center gap-4">
                 <select
