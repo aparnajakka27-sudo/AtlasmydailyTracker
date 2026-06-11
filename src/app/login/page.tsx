@@ -9,8 +9,8 @@ import { Sparkles, Mail, Lock, LogIn, UserPlus } from "lucide-react";
 export default function LoginPage() {
   const router = useRouter();
   const { data: session } = useSession();
-  const [email, setEmail] = useState("demo@lifetracker.ai");
-  const [password, setPassword] = useState("demopassword");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -88,11 +88,6 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white mb-2">Welcome to Atlas</h1>
           <p className="text-sm text-gray-400">Unlock your ultimate daily planning dashboard</p>
-        </div>
-
-        {/* Demo Credentials alert */}
-        <div className="mb-6 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 text-center">
-          💡 Click Login to access with the auto-filled Demo account!
         </div>
 
         {error && (
