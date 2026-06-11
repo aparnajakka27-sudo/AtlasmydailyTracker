@@ -1,0 +1,118 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String     @id @default(uuid())
+  email         String     @unique
+  password      String     // Hashed password
+  name          String?
+  xp            Int        @default(0)
+  level         Int        @default(1)
+  streak        Int        @default(0)
+  longestStreak Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  tasks         Task[]
+  schedules     Schedule[]
+  reviews       Review[]
+  habits        Habit[]
+  notes         Note[]
+  analytics     Analytics?
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  completed   Boolean  @default(false)
+  priority    String   @default("Medium") // Low, Medium, High
+  category    String   @default("General") // Work, Personal, Health, Coding, Reading, etc.
+  dueDate     DateTime?
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Schedule {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  priority    String   @default("Medium")
+  category    String   @default("General")
+  startTime   String   // e.g. "09:00"
+  endTime     String   // e.g. "10:00"
+  date        String   // YYYY-MM-DD
+  completed   Boolean  @default(false)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Habit {
+  id        String     @id @default(uuid())
+  name      String     // Coding, Exercise, Reading, Water Intake, Sleep, Meditation, etc.
+  goal      String     // e.g. "45 minutes", "8 glasses", "7 hours"
+  streak    Int        @default(0)
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs      HabitLog[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model HabitLog {
+  id        String   @id @default(uuid())
+  date      String   // YYYY-MM-DD
+  completed Boolean  @default(true)
+  habitId   String
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([habitId, date])
+}
+
+model Note {
+  id        String   @id @default(uuid())
+  title     String
+  content   String   // Markdown or HTML contents
+  type      String   @default("Quick Note") // Daily Journal, Quick Note, Custom Notes
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Review {
+  id                 String   @id @default(uuid())
+  date               String   @unique // YYYY-MM-DD
+  tasksCompleted     String   // Serialized JSON or narrative text
+  challenges         String
+  learnings          String
+  improvements       String
+  completionRate     Float
+  productivityScore  Int
+  dayRating          String   // Excellent, Good, Average, Poor
+  aiSuggestions      String   // Markdown suggestions from mock-AI engine
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt          DateTime @default(now())
+}
+
+model Analytics {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskCompletionRate  Float    @default(0.0)
+  averageProductivity Float    @default(0.0)
+  totalXP             Int      @default(0)
+  badgesEarned        String   // Serialized JSON array of badges
+  updatedAt           DateTime @updatedAt
+}
