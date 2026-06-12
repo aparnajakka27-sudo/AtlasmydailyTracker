@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { Sparkles, Mail, Lock, User, UserPlus, LogIn } from "lucide-react";
 
 export default function RegisterPage() {
@@ -31,10 +32,28 @@ export default function RegisterPage() {
         setError(data.error || "Registration failed");
       } else {
         setSuccess(true);
-        // Automatically seed demo database account
-        setTimeout(() => {
-          router.push("/login");
-        }, 1500);
+        
+        // Save credentials in localStorage for LoginPage persistence
+        if (typeof window !== "undefined") {
+          localStorage.setItem("lifetracker-email", email);
+          localStorage.setItem("lifetracker-pass", password);
+        }
+
+        // Auto sign-in
+        const loginRes = await signIn("credentials", {
+          email,
+          password,
+          redirect: false,
+        });
+
+        if (loginRes?.error) {
+          setError("Account created, but automatic sign-in failed. Please log in manually.");
+          setSuccess(false);
+        } else {
+          setTimeout(() => {
+            router.push("/");
+          }, 1000);
+        }
       }
     } catch (err) {
       setError("Something went wrong. Please check connection.");

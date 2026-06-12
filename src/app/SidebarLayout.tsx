@@ -22,7 +22,8 @@ import {
   Sparkles,
   ChevronRight,
   Menu,
-  X
+  X,
+  Rocket
 } from "lucide-react";
 
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
@@ -83,7 +84,8 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
     { name: "Smart To-Do", href: "/todo", icon: CheckSquare },
     { name: "Habit Tracker", href: "/habits", icon: Activity },
     { name: "Notes & Journal", href: "/notes", icon: NotebookPen },
-    { name: "AI Analytics", href: "/analytics", icon: Sparkles }
+    { name: "AI Analytics", href: "/analytics", icon: Sparkles },
+    { name: "My Profile", href: "/profile", icon: UserIcon }
   ];
 
   const currentLevelXP = dbUser ? dbUser.xp % 500 : 100;
@@ -104,7 +106,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
           </button>
           <Link href="/" className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-indigo-600/20 text-indigo-400 border border-indigo-500/20">
-              <Sparkles className="w-4 h-4 animate-pulse" />
+              <Rocket className="w-4 h-4 text-indigo-400" />
             </div>
             <span className="font-bold text-base bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
               Atlas
@@ -155,7 +157,7 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
           <div className="p-6 flex items-center justify-between border-b border-border/10">
             <Link href="/" className="flex items-center gap-3" onClick={() => setIsMobileMenuOpen(false)}>
               <div className="p-2 rounded-xl bg-indigo-600/20 text-indigo-400 border border-indigo-500/20">
-                <Sparkles className="w-5 h-5 animate-pulse" />
+                <Rocket className="w-5 h-5 text-indigo-400" />
               </div>
               {(isOpen || isMobileMenuOpen) && (
                 <span className="font-bold text-lg bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">

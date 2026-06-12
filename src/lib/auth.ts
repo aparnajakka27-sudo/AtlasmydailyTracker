@@ -47,18 +47,21 @@ export const authOptions = {
     async jwt({ token, user, trigger, session }: any) {
       if (user) {
         token.id = user.id;
+        token.name = user.name;
         token.xp = user.xp;
         token.level = user.level;
       }
       if (trigger === "update" && session) {
-        token.xp = session.xp;
-        token.level = session.level;
+        if (session.name) token.name = session.name;
+        if (session.xp) token.xp = session.xp;
+        if (session.level) token.level = session.level;
       }
       return token;
     },
     async session({ session, token }: any) {
       if (token) {
         session.user.id = token.id;
+        session.user.name = token.name;
         session.user.xp = token.xp;
         session.user.level = token.level;
       }
@@ -70,7 +73,8 @@ export const authOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET || "default-secret-string",
   session: {
-    strategy: "jwt" as const
+    strategy: "jwt" as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 days session persistence
   }
 };
 
