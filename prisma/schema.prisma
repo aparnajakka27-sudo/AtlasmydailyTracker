@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -8,22 +8,24 @@ generator client {
 }
 
 model User {
-  id            String     @id @default(uuid())
-  email         String     @unique
-  password      String     // Hashed password
-  name          String?
-  xp            Int        @default(0)
-  level         Int        @default(1)
-  streak        Int        @default(0)
-  longestStreak Int        @default(0)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-  tasks         Task[]
-  schedules     Schedule[]
-  reviews       Review[]
-  habits        Habit[]
-  notes         Note[]
-  analytics     Analytics?
+  id               String     @id @default(uuid())
+  email            String     @unique
+  password         String     // Hashed password
+  name             String?
+  xp               Int        @default(0)
+  level            Int        @default(1)
+  streak           Int        @default(0)
+  longestStreak    Int        @default(0)
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  tasks            Task[]
+  schedules        Schedule[]
+  reviews          Review[]
+  habits           Habit[]
+  notes            Note[]
+  analytics        Analytics?
 }
 
 model Task {
