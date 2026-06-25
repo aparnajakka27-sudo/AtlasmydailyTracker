@@ -55,6 +55,60 @@ export default function ToDoPage() {
     }
   }, [session]);
 
+  // Poll tasks for due reminders
+  useEffect(() => {
+    if (tasks.length === 0) return;
+
+    const getNotifiedIds = () => {
+      try {
+        return new Set<string>(JSON.parse(localStorage.getItem("notified-tasks") || "[]"));
+      } catch {
+        return new Set<string>();
+      }
+    };
+
+    const saveNotifiedIds = (ids: Set<string>) => {
+      try {
+        localStorage.setItem("notified-tasks", JSON.stringify(Array.from(ids)));
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    const checkReminders = () => {
+      const now = new Date();
+      const notified = getNotifiedIds();
+      let updated = false;
+
+      tasks.forEach(task => {
+        if (!task.completed && task.dueDate && !notified.has(task.id)) {
+          const dueTime = new Date(task.dueDate);
+          const diffMs = now.getTime() - dueTime.getTime();
+
+          // If current time is past the due time, but by less than 10 minutes
+          if (diffMs >= 0 && diffMs < 10 * 60 * 1000) {
+            notified.add(task.id);
+            updated = true;
+            triggerNotification(
+              "Task Reminder! 🔔",
+              `"${task.title}" is due now and is not completed!`,
+              "warning"
+            );
+          }
+        }
+      });
+
+      if (updated) {
+        saveNotifiedIds(notified);
+      }
+    };
+
+    const interval = setInterval(checkReminders, 20000); // Check every 20 seconds
+    checkReminders(); // Initial check
+
+    return () => clearInterval(interval);
+  }, [tasks, triggerNotification]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !session?.user?.id) return;
@@ -196,10 +250,10 @@ export default function ToDoPage() {
               <div className="relative">
                 <Calendar className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-secondary/35 border border-border rounded-xl text-sm focus:outline-none focus:border-indigo-500 transition-all"
+                  className="w-full pl-9 pr-3 py-2 bg-secondary/35 border border-border rounded-xl text-sm focus:outline-none focus:border-indigo-500 transition-all text-white"
                 />
               </div>
             </div>
@@ -331,7 +385,7 @@ export default function ToDoPage() {
                             <span className={`text-[9px] px-1.5 py-0.5 rounded border font-semibold ${priorityColor}`}>{task.priority}</span>
                             <span className="text-[9px] bg-secondary border border-border px-1.5 py-0.5 rounded font-semibold text-muted-foreground">{task.category}</span>
                             {task.dueDate && (
-                              <span className="text-[9px] text-muted-foreground font-semibold">📅 {new Date(task.dueDate).toLocaleDateString([], { month: 'short', day: 'numeric' })}</span>
+                              <span className="text-[9px] text-muted-foreground font-semibold">📅 {new Date(task.dueDate).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                             )}
                           </div>
                         </div>
