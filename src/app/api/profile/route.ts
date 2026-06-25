@@ -28,36 +28,8 @@ export async function GET(req: Request) {
       }
     });
 
-    // Self-healing database mechanism: If user exists in session cookie but got cleared in database,
-    // recreate the user record immediately so the user doesn't experience errors or need to clear cookies.
     if (!user) {
-      const session = await getServerSession(authOptions);
-      if (session?.user && session.user.id === userId) {
-        user = await prisma.user.create({
-          data: {
-            id: userId,
-            email: session.user.email,
-            name: session.user.name || session.user.email.split("@")[0],
-            password: "recovered-account",
-            xp: 100,
-            level: 1,
-            streak: 1,
-            longestStreak: 1
-          },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            xp: true,
-            level: true,
-            streak: true,
-            longestStreak: true,
-            createdAt: true,
-          }
-        });
-      } else {
-        return NextResponse.json({ error: "User not found" }, { status: 404 });
-      }
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // 2. Fetch Tasks stats

@@ -42,8 +42,12 @@ export function SidebarLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (session?.user?.id) {
       fetch(`/api/analytics?userId=${session.user.id}`)
-        .then(res => res.json())
-        .then(data => {
+        .then(async (res) => {
+          if (res.status === 404 || res.status === 401) {
+            signOut({ callbackUrl: "/login" });
+            return;
+          }
+          const data = await res.json();
           if (data && !data.error) {
             setDbUser(data);
           }

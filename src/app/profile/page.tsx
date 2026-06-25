@@ -31,6 +31,11 @@ export default function ProfilePage() {
     try {
       setLoading(true);
       const res = await fetch(`/api/profile?userId=${session.user.id}`);
+      if (res.status === 404 || res.status === 401) {
+        const { signOut } = await import("next-auth/react");
+        await signOut({ callbackUrl: "/login" });
+        return;
+      }
       if (!res.ok) {
         throw new Error("Failed to load profile metrics.");
       }

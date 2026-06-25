@@ -21,6 +21,10 @@ export async function GET(req: Request) {
       select: { streak: true, longestStreak: true, xp: true, level: true }
     });
 
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
     // Fetch all habits and completions
     const habits = await prisma.habit.findMany({
       where: { userId },

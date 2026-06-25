@@ -1,15 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-
-async function hashPassword(password: string) {
-  let hash = 0;
-  for (let i = 0; i < password.length; i++) {
-    const char = password.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash;
-  }
-  return hash.toString(36);
-}
+import { hash } from "bcryptjs";
 
 export async function POST(req: Request) {
   try {
@@ -19,20 +10,33 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing email or password" }, { status: 400 });
     }
 
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: "Invalid email" }, { status: 400 });
+    }
+
+    // Password length validation
+    if (password.length < 6) {
+      return NextResponse.json({ error: "Password too short" }, { status: 400 });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email: cleanEmail }
     });
 
     if (existingUser) {
-      return NextResponse.json({ error: "User already exists" }, { status: 400 });
+      return NextResponse.json({ error: "Email already registered" }, { status: 400 });
     }
 
-    const hashedPassword = await hashPassword(password);
+    // Securely hash password with bcryptjs
+    const hashedPassword = await hash(password, 10);
     const user = await prisma.user.create({
       data: {
-        email,
+        email: cleanEmail,
         password: hashedPassword,
-        name: name || email.split("@")[0],
+        name: name || cleanEmail.split("@")[0],
         xp: 100, // starting bonus
         level: 1,
         streak: 1,
