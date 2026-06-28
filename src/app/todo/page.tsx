@@ -38,12 +38,22 @@ export default function ToDoPage() {
     setLoading(true);
     try {
       const res = await fetch(`/api/tasks?userId=${session.user.id}`);
+      if (!res.ok) throw new Error("Database fetch failed");
       const data = await res.json();
       if (Array.isArray(data)) {
         setTasks(data);
+        localStorage.setItem(`lifetracker-tasks-${session.user.id}`, JSON.stringify(data));
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load tasks from DB, loading locally:", err);
+      const local = localStorage.getItem(`lifetracker-tasks-${session.user.id}`);
+      if (local) {
+        try {
+          setTasks(JSON.parse(local));
+        } catch (e) {
+          console.error("Local storage parse failed:", e);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -113,18 +123,23 @@ export default function ToDoPage() {
     e.preventDefault();
     if (!title || !session?.user?.id) return;
 
+    const newTask = {
+      id: Math.random().toString(36).substring(7),
+      title,
+      description,
+      priority,
+      category,
+      dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+      completed: false,
+      userId: session.user.id,
+      createdAt: new Date().toISOString(),
+    };
+
     try {
       const res = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description,
-          priority,
-          category,
-          dueDate: dueDate ? new Date(dueDate) : null,
-          userId: session.user.id
-        })
+        body: JSON.stringify(newTask)
       });
 
       if (res.ok) {
@@ -133,14 +148,30 @@ export default function ToDoPage() {
         setDueDate("");
         loadTasks();
         triggerNotification("Task Created! ✅", `"${title}" was added. +10 XP rewarded.`);
+      } else {
+        throw new Error("POST failed");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to save task to DB, saving locally:", err);
+      const updatedTasks = [newTask, ...tasks];
+      setTasks(updatedTasks);
+      localStorage.setItem(`lifetracker-tasks-${session.user.id}`, JSON.stringify(updatedTasks));
+      
+      setTitle("");
+      setDescription("");
+      setDueDate("");
+      triggerNotification("Task Saved Locally! 💾", `"${title}" was saved to this device.`);
     }
   };
 
   const handleToggleCompleted = async (id: string, currentCompleted: boolean, title: string) => {
     if (!session?.user?.id) return;
+    
+    // Optimistic local state update
+    const updatedTasks = tasks.map(t => t.id === id ? { ...t, completed: !currentCompleted } : t);
+    setTasks(updatedTasks);
+    localStorage.setItem(`lifetracker-tasks-${session.user.id}`, JSON.stringify(updatedTasks));
+
     try {
       const res = await fetch("/api/tasks", {
         method: "PUT",
@@ -153,7 +184,6 @@ export default function ToDoPage() {
       });
 
       if (res.ok) {
-        loadTasks();
         if (!currentCompleted) {
           confetti({
             particleCount: 50,
@@ -171,22 +201,24 @@ export default function ToDoPage() {
         }
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to sync completed status to server:", err);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!session?.user?.id) return;
+
+    // Optimistic local state update
+    const updatedTasks = tasks.filter(t => t.id !== id);
+    setTasks(updatedTasks);
+    localStorage.setItem(`lifetracker-tasks-${session.user.id}`, JSON.stringify(updatedTasks));
+
     try {
-      const res = await fetch(`/api/tasks?id=${id}&userId=${session.user.id}`, {
+      await fetch(`/api/tasks?id=${id}&userId=${session.user.id}`, {
         method: "DELETE"
       });
-
-      if (res.ok) {
-        loadTasks();
-      }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to delete task from server:", err);
     }
   };
 

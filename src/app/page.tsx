@@ -66,13 +66,29 @@ export default function DashboardPage() {
     if (!session?.user?.id) return;
     setLoading(true);
     try {
-      // Fetch tasks count
-      const tasksRes = await fetch(`/api/tasks?userId=${session.user.id}`);
-      const tasks = await tasksRes.json();
+      let tasks = [];
+      try {
+        const tasksRes = await fetch(`/api/tasks?userId=${session.user.id}`);
+        if (tasksRes.ok) {
+          tasks = await tasksRes.json();
+        } else {
+          throw new Error("Failed to load tasks from server");
+        }
+      } catch (e) {
+        console.error("Dashboard tasks load failed, loading locally:", e);
+        const local = localStorage.getItem(`lifetracker-tasks-${session.user.id}`);
+        if (local) tasks = JSON.parse(local);
+      }
       
-      // Fetch analytics summary
-      const analRes = await fetch(`/api/analytics?userId=${session.user.id}`);
-      const anal = await analRes.json();
+      let anal: any = {};
+      try {
+        const analRes = await fetch(`/api/analytics?userId=${session.user.id}`);
+        if (analRes.ok) {
+          anal = await analRes.json();
+        }
+      } catch (e) {
+        console.error("Dashboard analytics load failed:", e);
+      }
 
       if (Array.isArray(tasks)) {
         const completed = tasks.filter(t => t.completed).length;

@@ -42,12 +42,22 @@ export default function PlannerPage() {
     setLoading(true);
     try {
       const res = await fetch(`/api/schedules?userId=${session.user.id}&date=${selectedDate}`);
+      if (!res.ok) throw new Error("Database fetch failed");
       const data = await res.json();
       if (Array.isArray(data)) {
         setSchedules(data);
+        localStorage.setItem(`lifetracker-schedules-${session.user.id}-${selectedDate}`, JSON.stringify(data));
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load schedules from DB, loading locally:", err);
+      const local = localStorage.getItem(`lifetracker-schedules-${session.user.id}-${selectedDate}`);
+      if (local) {
+        try {
+          setSchedules(JSON.parse(local));
+        } catch (e) {
+          console.error("Local storage parse failed:", e);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -63,20 +73,25 @@ export default function PlannerPage() {
     e.preventDefault();
     if (!title || !session?.user?.id) return;
 
+    const newSchedule = {
+      id: Math.random().toString(36).substring(7),
+      title,
+      description,
+      priority: priority || "Medium",
+      category: category || "General",
+      startTime: "All day",
+      endTime: "All day",
+      date: selectedDate,
+      completed: false,
+      userId: session.user.id,
+      createdAt: new Date().toISOString(),
+    };
+
     try {
       const res = await fetch("/api/schedules", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description,
-          priority,
-          category,
-          startTime: "All day",
-          endTime: "All day",
-          date: selectedDate,
-          userId: session.user.id
-        })
+        body: JSON.stringify(newSchedule)
       });
 
       if (res.ok) {
@@ -84,14 +99,29 @@ export default function PlannerPage() {
         setDescription("");
         loadSchedules();
         triggerNotification("Schedule Created! 📅", `"${title}" has been successfully added to your planner.`);
+      } else {
+        throw new Error("POST failed");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to save schedule to DB, saving locally:", err);
+      const updatedSchedules = [...schedules, newSchedule];
+      setSchedules(updatedSchedules);
+      localStorage.setItem(`lifetracker-schedules-${session.user.id}-${selectedDate}`, JSON.stringify(updatedSchedules));
+      
+      setTitle("");
+      setDescription("");
+      triggerNotification("Schedule Saved Locally! 💾", `"${title}" was saved to this device.`);
     }
   };
 
   const handleToggleCompleted = async (id: string, currentCompleted: boolean) => {
     if (!session?.user?.id) return;
+    
+    // Optimistic local state update
+    const updatedSchedules = schedules.map(s => s.id === id ? { ...s, completed: !currentCompleted } : s);
+    setSchedules(updatedSchedules);
+    localStorage.setItem(`lifetracker-schedules-${session.user.id}-${selectedDate}`, JSON.stringify(updatedSchedules));
+
     try {
       const res = await fetch("/api/schedules", {
         method: "PUT",
@@ -104,28 +134,29 @@ export default function PlannerPage() {
       });
 
       if (res.ok) {
-        loadSchedules();
         if (!currentCompleted) {
           triggerNotification("Goal Reached! 🌟", "Awesome job finishing your scheduled block!");
         }
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to sync completed status to server:", err);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!session?.user?.id) return;
+
+    // Optimistic local state update
+    const updatedSchedules = schedules.filter(s => s.id !== id);
+    setSchedules(updatedSchedules);
+    localStorage.setItem(`lifetracker-schedules-${session.user.id}-${selectedDate}`, JSON.stringify(updatedSchedules));
+
     try {
-      const res = await fetch(`/api/schedules?id=${id}&userId=${session.user.id}`, {
+      await fetch(`/api/schedules?id=${id}&userId=${session.user.id}`, {
         method: "DELETE"
       });
-
-      if (res.ok) {
-        loadSchedules();
-      }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to delete schedule from server:", err);
     }
   };
 
