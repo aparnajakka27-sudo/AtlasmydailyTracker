@@ -41,12 +41,22 @@ export default function HabitsPage() {
     setLoading(true);
     try {
       const res = await fetch(`/api/habits?userId=${session.user.id}`);
+      if (!res.ok) throw new Error("Fetch failed");
       const data = await res.json();
       if (Array.isArray(data)) {
         setHabits(data);
+        localStorage.setItem(`lifetracker-habits-${session.user.id}`, JSON.stringify(data));
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to load habits from DB, loading locally:", err);
+      const local = localStorage.getItem(`lifetracker-habits-${session.user.id}`);
+      if (local) {
+        try {
+          setHabits(JSON.parse(local));
+        } catch (e) {
+          console.error("Failed to parse local habits:", e);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -61,6 +71,16 @@ export default function HabitsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !session?.user?.id) return;
+
+    const newHabit = {
+      id: Math.random().toString(36).substring(7),
+      name,
+      goal,
+      streak: 0,
+      logs: [],
+      userId: session.user.id,
+      createdAt: new Date().toISOString(),
+    };
 
     try {
       const res = await fetch("/api/habits", {
@@ -78,14 +98,84 @@ export default function HabitsPage() {
         setGoal("Daily");
         loadHabits();
         triggerNotification("Habit Added! ⚡", `"${name}" is ready for streak logging.`);
+      } else {
+        throw new Error("Failed to save habit");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to save habit to DB, saving locally:", err);
+      const updatedHabits = [...habits, newHabit];
+      setHabits(updatedHabits);
+      localStorage.setItem(`lifetracker-habits-${session.user.id}`, JSON.stringify(updatedHabits));
+      
+      setName("");
+      setGoal("Daily");
+      triggerNotification("Habit Saved Locally! 💾", `"${name}" was saved to this device.`);
     }
   };
 
   const handleToggleLog = async (habitId: string, date: string, wasCompleted: boolean) => {
     if (!session?.user?.id) return;
+
+    // Optimistic local update
+    const updatedHabits = habits.map(h => {
+      if (h.id === habitId) {
+        let newLogs = [...h.logs];
+        if (wasCompleted) {
+          // Remove log for that date
+          newLogs = newLogs.filter((l: any) => l.date !== date);
+        } else {
+          // Add log for that date
+          newLogs.push({
+            id: Math.random().toString(36).substring(7),
+            date,
+            completed: true,
+            habitId
+          });
+        }
+        
+        // Calculate simple streak based on consecutive logged days ending today/yesterday
+        const logDates = new Set(newLogs.map((l: any) => l.date));
+        let streak = 0;
+        const checkDate = new Date();
+        // Check today, yesterday, and go back
+        let currentStr = checkDate.toISOString().split("T")[0];
+        if (logDates.has(currentStr)) {
+          streak++;
+          while (true) {
+            checkDate.setDate(checkDate.getDate() - 1);
+            currentStr = checkDate.toISOString().split("T")[0];
+            if (logDates.has(currentStr)) {
+              streak++;
+            } else {
+              break;
+            }
+          }
+        } else {
+          // Check starting yesterday
+          checkDate.setDate(checkDate.getDate() - 1);
+          currentStr = checkDate.toISOString().split("T")[0];
+          if (logDates.has(currentStr)) {
+            streak++;
+            while (true) {
+              checkDate.setDate(checkDate.getDate() - 1);
+              currentStr = checkDate.toISOString().split("T")[0];
+              if (logDates.has(currentStr)) {
+                streak++;
+              } else {
+                break;
+              }
+            }
+          }
+        }
+
+        return { ...h, logs: newLogs, streak };
+      }
+      return h;
+    });
+
+    setHabits(updatedHabits);
+    localStorage.setItem(`lifetracker-habits-${session.user.id}`, JSON.stringify(updatedHabits));
+
     try {
       const res = await fetch("/api/habits", {
         method: "PUT",
@@ -99,28 +189,29 @@ export default function HabitsPage() {
       });
 
       if (res.ok) {
-        loadHabits();
         if (!wasCompleted) {
           triggerNotification("Streak Increment! 🔥", "Way to lock down your habits today! +25 XP");
         }
       }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to sync log to server:", err);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!session?.user?.id) return;
+
+    // Optimistic local update
+    const updatedHabits = habits.filter(h => h.id !== id);
+    setHabits(updatedHabits);
+    localStorage.setItem(`lifetracker-habits-${session.user.id}`, JSON.stringify(updatedHabits));
+
     try {
-      const res = await fetch(`/api/habits?id=${id}&userId=${session.user.id}`, {
+      await fetch(`/api/habits?id=${id}&userId=${session.user.id}`, {
         method: "DELETE"
       });
-
-      if (res.ok) {
-        loadHabits();
-      }
     } catch (err) {
-      console.error(err);
+      console.error("Failed to delete habit from server:", err);
     }
   };
 
