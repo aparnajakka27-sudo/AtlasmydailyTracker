@@ -1,5 +1,5 @@
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -94,7 +94,7 @@ model Note {
 
 model Review {
   id                 String   @id @default(uuid())
-  date               String   @unique // YYYY-MM-DD
+  date               String   // YYYY-MM-DD
   tasksCompleted     String   // Serialized JSON or narrative text
   challenges         String
   learnings          String
@@ -106,6 +106,8 @@ model Review {
   userId             String
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt          DateTime @default(now())
+
+  @@unique([userId, date])
 }
 
 model Analytics {

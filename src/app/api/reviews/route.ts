@@ -53,7 +53,12 @@ export async function GET(req: Request) {
     if (!userId || !date) return NextResponse.json({ error: "Missing query info" }, { status: 400 });
 
     const review = await prisma.review.findUnique({
-      where: { date }
+      where: {
+        userId_date: {
+          userId,
+          date
+        }
+      }
     });
 
     return NextResponse.json(review || null);
@@ -90,7 +95,12 @@ export async function POST(req: Request) {
 
     // Upsert review record
     const review = await prisma.review.upsert({
-      where: { date },
+      where: {
+        userId_date: {
+          userId,
+          date
+        }
+      },
       update: {
         tasksCompleted: JSON.stringify(tasksCompleted || []),
         challenges: challenges || "",
